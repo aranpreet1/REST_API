@@ -2,19 +2,19 @@ const express = require ('express');
 const { fetchAll,fetchById, createContact, updateById, deleteById } = require('../controller/appController');
 const router = express.Router();
 
-//get all task
+//get all contacts
 router.get('/', fetchAll);
 
-//get by id
+//get contacts by id
 router.get('/:id', fetchById);
 
-//post 
+//post (create new contacts)
 router.post('/', createContact);
 
-//put 
+//put  (update existing contact via id)
 router.put('/:id', updateById);
 
-//delete 
+//delete  (delete contact via id)
 router.delete('/:id', deleteById);
 
 

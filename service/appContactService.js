@@ -1,10 +1,15 @@
 const db = require("../database");
 
- const fetchService = async(id)=>{
-        conn = await db.getConnection();
+ const fetchByIdService = async(conn,{id})=>{
         const query = `SELECT * FROM CONTACT where id=${id}`;
         const [rows]= await conn.execute(query);
         return rows;
+}
+
+const fetchAllService = async(conn, { username, email, phonenumber})=>{
+        const query = `SELECT * FROM CONTACT`;
+        const [result]= await conn.execute(query);
+        return result;
 }
 
 const fetchByMailService = async (email, phonenumber, excludeID) => {
@@ -37,8 +42,9 @@ async function createContactService(conn, { username, email, phonenumber }) {
 
 
 module.exports = {
+        fetchAllService,
         fetchByMailService,
-        fetchService,
+        fetchByIdService,
         createContactService,
         updateByIdService
 }

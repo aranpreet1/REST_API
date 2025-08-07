@@ -1,6 +1,7 @@
 const db = require("../database");
 
- const fetchByIdService = async(conn,{id})=>{
+ const fetchByIdService = async(id)=>{
+        const conn = await db.getConnection();
         const query = `SELECT * FROM CONTACT where id=${id}`;
         const [rows]= await conn.execute(query);
         return rows;

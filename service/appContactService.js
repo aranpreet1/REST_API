@@ -15,6 +15,13 @@ const fetchByMailService = async (email, phonenumber, excludeID) => {
     return rows;
 };
 
+const updateByIdService = async (conn, { username, email, phonenumber, id})=>{
+            const query =`UPDATE CONTACT SET USERNAME = ?, EMAIL = ?, PHONENUMBER = ? WHERE ID = ?`;
+            const [result] = await conn.execute(query, [username , email, phonenumber, id]);
+            return result;
+
+}
+
 
 async function createContactService(conn, { username, email, phonenumber }) {
     const query = "INSERT INTO CONTACT (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)";
@@ -32,5 +39,6 @@ async function createContactService(conn, { username, email, phonenumber }) {
 module.exports = {
         fetchByMailService,
         fetchService,
-        createContactService
+        createContactService,
+        updateByIdService
 }

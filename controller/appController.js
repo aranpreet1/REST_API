@@ -1,5 +1,5 @@
 const db = require("../database");
-const {fetchService,createContactService,fetchByMailService} = require('../service/appContactService')
+const {fetchService,createContactService,fetchByMailService,updateByIdService} = require('../service/appContactService')
 
 const createContact = async(req,resp)=>{
     let conn;
@@ -7,7 +7,6 @@ const createContact = async(req,resp)=>{
         conn = await db.getConnection();
         console.log("req  body", req.body); 
         const {username, email, phonenumber} = req.body;
-        // const {username, email, phonenumber} = req.body;
         // const query = "INSERT INTO CONTACT(USERNAME,EMAIL,PHONENUMBER) VALUES (?, ?, ?)";
         // const [result] = await conn.execute(query, [username,email,phonenumber]);
          const result = await createContactService(conn, { username, email, phonenumber });
@@ -71,9 +70,9 @@ const updateById = async(req,resp)=>{
         if(Array.isArray(existingContacts) && existingContacts.length > 0){
             return resp.status(404).json({ message: "Another contact already exists with this email or phone number" });
         } 
-        
-            const query =`UPDATE CONTACT SET USERNAME = ?, EMAIL = ?, PHONENUMBER = ? WHERE ID = ?`;
-            const [result] = await conn.execute(query, [username , email, phonenumber, id]);
+            const result = await updateByIdService(conn, { username, email, phonenumber, id });
+            // const query =`UPDATE CONTACT SET USERNAME = ?, EMAIL = ?, PHONENUMBER = ? WHERE ID = ?`;
+            // const [result] = await conn.execute(query, [username , email, phonenumber, id]);
             console.log(" UPDATED RESULT->",result);
             if (result.affectedRows === 0) {
             return resp.status(404).json({ message: "No contact found with the given ID" });

@@ -1,5 +1,7 @@
 const express = require ('express');
 const { contactRouter } = require('./routes');
+require('dotenv').config();
+
 const app = express();
 
 app.use(express.json()); //POST,PUT

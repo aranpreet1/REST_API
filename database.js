@@ -1,15 +1,16 @@
 const mysql = require ('mysql2/promise');
+require('dotenv').config(); // Load 
 
 class Database{
     constructor(){
-        if(!Database.instance){
-            this.pool=mysql.createPool({
-                host: 'localhost',
-                user: 'root',
-                password:'admin',
-                database:'contact_info',
+        if (!Database.instance) {
+            this.pool = mysql.createPool({
+                host: process.env.DB_HOST,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_NAME,
                 waitForConnections: true,
-                connectionLimit: 10,
+                connectionLimit: parseInt(process.env.DB_CONN_LIMIT || "10"),
                 queueLimit: 0
             });
             Database.instance = this;

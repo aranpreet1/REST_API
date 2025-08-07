@@ -30,7 +30,6 @@ const fetchAll = async(req,resp)=>{
             resp.status(500).json({error: "failed to get task"});
 
     }finally{
-        //to realease db connection
         if (conn) conn.release();
     }
     }

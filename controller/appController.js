@@ -4,9 +4,8 @@ const {createContactService,fetchByMailService,updateByIdService,fetchByIdServic
 const createContact = async(req,resp)=>{
     let conn;
     try {
-        conn = await db.getConnection();
         const {username, email, phonenumber} = req.body;
-        const result = await createContactService(conn, { username, email, phonenumber });
+        const result = await createContactService( username, email, phonenumber );
          resp.status(201).json({ data: result });
     }catch(err){
             console.log('failed to create contact', err.stack || err);
@@ -19,9 +18,8 @@ const createContact = async(req,resp)=>{
 const fetchAll = async(req,resp)=>{
     let conn;
     try {
-        conn = await db.getConnection();
         const {username, email, phonenumber} = req.query;
-        const result = await fetchAllService(conn, { username, email, phonenumber });
+        const result = await fetchAllService( username, email, phonenumber );
         resp.status(200).json({data: result});
     }catch(err){
             console.log('failed to get contact', err.stack || err);
@@ -50,14 +48,13 @@ const fetchById = async(req,resp)=>{
 const updateById = async(req,resp)=>{
     let conn;
     try {
-        conn = await db.getConnection();
         const id = parseInt(req.params.id);
+        const { username, email, phonenumber } = req.body; 
         const existingContacts = await fetchByMailService(email, phonenumber, id);
-
         if(Array.isArray(existingContacts) && existingContacts.length > 0){
             return resp.status(404).json({ message: "Another contact already exists with this email or phone number" });
         } 
-            const result = await updateByIdService(conn, { username, email, phonenumber, id });
+            const result = await updateByIdService( username, email, phonenumber, id );
             if (result.affectedRows === 0) {
             return resp.status(404).json({ message: "No contact found with the given ID" });
         }
@@ -73,8 +70,8 @@ const updateById = async(req,resp)=>{
 const deleteById = async(req,resp)=>{
 try {
         const id = parseInt(req.params.id);
-        conn = await db.getConnection();
-        const result = await deleteByIdService(conn, {id});
+       
+        const result = await deleteByIdService(id);
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "No contact found with the given ID" });
         }

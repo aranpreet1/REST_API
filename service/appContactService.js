@@ -7,7 +7,8 @@ const db = require("../database");
         return rows;
 };
 
-const fetchAllService = async(conn, { username, email, phonenumber})=>{
+const fetchAllService = async( )=>{
+        conn = await db.getConnection();
         const query = `SELECT * FROM CONTACT`;
         const [result]= await conn.execute(query);
         return result;
@@ -21,21 +22,24 @@ const fetchByMailService = async (email, phonenumber, excludeID) => {
     return rows;
 };
 
-const updateByIdService = async (conn, { username, email, phonenumber, id})=>{
+const updateByIdService = async (username, email, phonenumber, id)=>{
+            conn = await db.getConnection();
             const query =`UPDATE CONTACT SET USERNAME = ?, EMAIL = ?, PHONENUMBER = ? WHERE ID = ?`;
             const [result] = await conn.execute(query, [username , email, phonenumber, id]);
             return result;
 
 };
 
-const deleteByIdService = async (conn, {username, email, phonenumber, id})=>{
+const deleteByIdService = async (id)=>{
+         conn = await db.getConnection();
         const query = `DELETE FROM CONTACT where id=${id}`;
         const [result]= await conn.execute(query, [id]);
         return result;
 }
 
 
-async function createContactService(conn, { username, email, phonenumber }) {
+async function createContactService( username, email, phonenumber) {
+    conn = await db.getConnection();
     const query = "INSERT INTO CONTACT (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)";
     const [result] = await conn.execute(query, [username, email, phonenumber]);
 

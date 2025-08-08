@@ -1,4 +1,9 @@
 const db = require("../database");
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const isPhone = (v) => /^[0-9+\-()\s]{7,20}$/.test(v);
+const multer = require("multer");
+const XLSX = require("xlsx");
+
 
  const fetchByIdService = async(id)=>{
         const conn = await db.getConnection();
@@ -51,6 +56,67 @@ async function createContactService( username, email, phonenumber) {
     };
 }
 
+function parseExcelToUsers(filePath) {
+  const workbook = XLSX.readFile(filePath);
+  const sheetName = workbook.SheetNames[0]; 
+  const worksheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+
+  const users = rows.map((r, idx) => {
+    const username = String(r.username ?? r.Username ?? r.USERNAME ?? '').trim();
+    const email = String(r.email ?? r.Email ?? r.EMAIL ?? '').trim();
+    const phone = String(r.phone ?? r.Phone ?? r.PHONE ?? '').trim();
+    return { username, email, phone, _row: idx + 2 }; 
+  });
+
+  return users.filter(u => u.username || u.email || u.phone);
+}
+
+async function insertUsers(users) {
+  if (!users.length) return { inserted: 0, failed: 0, errors: [] };
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const sql = 'INSERT INTO CONTACT  (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)';
+    let inserted = 0;
+    const errors = [];
+
+    for (const u of users) {
+      if (!u.username || !u.email || !u.phone) {
+        errors.push({ row: u._row, error: 'Missing username/email/phone' });
+        continue;
+      }
+      if (!isEmail(u.email)) {
+        errors.push({ row: u._row, error: 'Invalid email format' });
+        continue;
+      }
+      if (!isPhone(u.phone)) {
+        errors.push({ row: u._row, error: 'Invalid phone format' });
+        continue;
+      }
+      try {
+        await conn.execute(sql, [u.username, u.email, u.phone]);
+        inserted += 1;
+      } catch (e) {
+        errors.push({ row: u._row, error: e.code || e.message });
+      }
+    }
+
+    await conn.commit();
+    return { inserted, failed: errors.length, errors };
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
+}
+
+
+
 
 module.exports = {
         fetchAllService,
@@ -58,5 +124,7 @@ module.exports = {
         fetchByIdService,
         createContactService,
         updateByIdService,
-        deleteByIdService
+        deleteByIdService,
+        parseExcelToUsers,
+        insertUsers,
 }

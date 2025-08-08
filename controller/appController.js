@@ -1,6 +1,8 @@
 const db = require("../database");
-const {createContactService,fetchByMailService,updateByIdService,fetchByIdService,fetchAllService,deleteByIdService} = require('../service/appContactService')
-
+const fs = require('fs');
+const {parseExcelToUsers, insertUsers, createContactService, fetchByMailService,updateByIdService,fetchByIdService,fetchAllService,deleteByIdService} = require('../service/appContactService')
+const multer = require("multer");
+const XLSX = require("xlsx");
 const createContact = async(req,resp)=>{
     let conn;
     try {
@@ -87,10 +89,41 @@ try {
     
 }
 
+const uploadUsers = async(req,res)=>{
+try {
+    if (!req.file) return res.status(400).json({ message: 'Excel file is required' });
+
+    const users = parseExcelToUsers(req.file.path);
+    if (!users.length) {
+      // Clean up uploaded file
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({ message: 'No usable rows found in the Excel file' });
+    }
+
+    const result = await insertUsers(users);
+
+    // Optional: delete file after processing
+    fs.unlink(req.file.path, () => {});
+
+    return res.status(201).json({
+      message: 'Import completed',
+      inserted: result.inserted,
+      failed: result.failed,
+      errors: result.errors,
+    });
+  } catch (err) {
+    // Optional: delete file on error
+    if (req.file) fs.unlink(req.file.path, () => {});
+    return res.status(500).json({ message: 'Failed to import users', error: err.message });
+  }
+}
+
+
 module.exports= {
+    uploadUsers,
     createContact,
     fetchAll,
     fetchById,
     updateById,
-    deleteById
+    deleteById,
 }

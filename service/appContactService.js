@@ -64,46 +64,11 @@ function parseExcelToUsers(filePath) {
 
  
   const users = rows.map((r, idx) => {
-  const username = String(r.username ?? r.Username ?? r.USERNAME ?? '').trim();
-  const email = String(r.email ?? r.Email ?? r.EMAIL ?? '').trim();
-  const phone = String(r.phone ?? r.Phone ?? r.PHONE ?? '').trim();
-
-  const errors = [];
-
-  // Username validation (only letters, allow spaces)
-  const usernameRegex = /^[A-Za-z\s]+$/;
-  if (!username) {
-    errors.push("Username is required");
-  } else if (!usernameRegex.test(username)) {
-    errors.push("Username must contain only letters");
-  }
-
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email) {
-    errors.push("Email is required");
-  } else if (!emailRegex.test(email)) {
-    errors.push("Invalid email format");
-  }
-
-  // Phone validation (exactly 10 digits)
-  const phoneRegex = /^\d{10}$/;
-  if (!phone) {
-    errors.push("Phone number is required");
-  } else if (!phoneRegex.test(phone)) {
-    errors.push("Invalid phone format");
-  }
-
-  return {
-    username,
-    email,
-    phone,
-    _row: idx + 2,
-    isValid: errors.length === 0,
-    errors
-  };
-});
-
+    const username = String(r.username ?? r.Username ?? r.USERNAME ?? '').trim();
+    const email = String(r.email ?? r.Email ?? r.EMAIL ?? '').trim();
+    const phone = String(r.phone ?? r.Phone ?? r.PHONE ?? '').trim();
+    return { username, email, phone, _row: idx + 2 }; 
+  });
  
   return users.filter(u => u.username || u.email || u.phone);
 }
@@ -115,25 +80,54 @@ async function insertUsers(users) {
   try {
     await conn.beginTransaction();
 
-    const sql = 'INSERT INTO CONTACT  (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)';
+    const sql = 'INSERT INTO CONTACT (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)';
     let inserted = 0;
     const errors = [];
 
+    // Validation regexes
+    const usernameRegex = /^[A-Za-z\s]+$/; // only letters + spaces
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // basic email format
+    const phoneRegex = /^\d{10}$/; // exactly 10 digits
+
     for (const u of users) {
-      if (!u.username || !u.email || !u.phone) {
-        errors.push({ row: u._row, error: 'Missing username/email/phone' });
+      // Normalize fields
+      const username = String(u.username || '').trim();
+      const email = String(u.email || '').trim();
+      const phone = String(u.phone || '').replace(/\D/g, '').trim(); // remove non-digits
+
+      // Username validation
+      if (!username) {
+        errors.push({ row: u._row, error: 'Username is required' });
         continue;
       }
-      if (!isEmail(u.email)) {
+      if (!usernameRegex.test(username)) {
+        errors.push({ row: u._row, error: 'Username must contain only letters and spaces' });
+        continue;
+      }
+
+      // Email validation
+      if (!email) {
+        errors.push({ row: u._row, error: 'Email is required' });
+        continue;
+      }
+      if (!emailRegex.test(email)) {
         errors.push({ row: u._row, error: 'Invalid email format' });
         continue;
       }
-      if (!isPhone(u.phone)) {
-        errors.push({ row: u._row, error: 'Invalid phone format' });
+
+      // Phone validation
+      if (!phone) {
+        errors.push({ row: u._row, error: 'Phone number is required' });
         continue;
       }
+      if (!phoneRegex.test(phone)) {
+        errors.push({ row: u._row, error: 'Phone must be exactly 10 digits' });
+        continue;
+      }
+
+      // Insert into DB
       try {
-        await conn.execute(sql, [u.username, u.email, u.phone]);
+        await conn.execute(sql, [username, email, phone]);
         inserted += 1;
       } catch (e) {
         errors.push({ row: u._row, error: e.code || e.message });
@@ -142,6 +136,7 @@ async function insertUsers(users) {
 
     await conn.commit();
     return { inserted, failed: errors.length, errors };
+
   } catch (e) {
     await conn.rollback();
     throw e;

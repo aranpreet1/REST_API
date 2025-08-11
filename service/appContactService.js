@@ -62,14 +62,49 @@ function parseExcelToUsers(filePath) {
   const worksheet = workbook.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-
+ 
   const users = rows.map((r, idx) => {
-    const username = String(r.username ?? r.Username ?? r.USERNAME ?? '').trim();
-    const email = String(r.email ?? r.Email ?? r.EMAIL ?? '').trim();
-    const phone = String(r.phone ?? r.Phone ?? r.PHONE ?? '').trim();
-    return { username, email, phone, _row: idx + 2 }; 
-  });
+  const username = String(r.username ?? r.Username ?? r.USERNAME ?? '').trim();
+  const email = String(r.email ?? r.Email ?? r.EMAIL ?? '').trim();
+  const phone = String(r.phone ?? r.Phone ?? r.PHONE ?? '').trim();
 
+  const errors = [];
+
+  // Username validation (only letters, allow spaces)
+  const usernameRegex = /^[A-Za-z\s]+$/;
+  if (!username) {
+    errors.push("Username is required");
+  } else if (!usernameRegex.test(username)) {
+    errors.push("Username must contain only letters");
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email) {
+    errors.push("Email is required");
+  } else if (!emailRegex.test(email)) {
+    errors.push("Invalid email format");
+  }
+
+  // Phone validation (exactly 10 digits)
+  const phoneRegex = /^\d{10}$/;
+  if (!phone) {
+    errors.push("Phone number is required");
+  } else if (!phoneRegex.test(phone)) {
+    errors.push("Invalid phone format");
+  }
+
+  return {
+    username,
+    email,
+    phone,
+    _row: idx + 2,
+    isValid: errors.length === 0,
+    errors
+  };
+});
+
+ 
   return users.filter(u => u.username || u.email || u.phone);
 }
 

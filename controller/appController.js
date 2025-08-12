@@ -17,20 +17,25 @@ const createContact = async(req,resp)=>{
     }
 } 
 
-const fetchAll = async(req,resp)=>{
-    let conn;
+const fetchAll = async (req, resp) => {
     try {
-        const {username, email, phonenumber} = req.query;
-        const result = await fetchAllService( username, email, phonenumber );
-        resp.status(200).json({data: result});
-    }catch(err){
-            console.log('failed to get contact', err.stack || err);
-            resp.status(500).json({error: "failed to get task"});
+        const { phonenumber, id, email, page, limit } = req.query;
 
-    }finally{
-        if (conn) conn.release();
+        const result = await fetchAllService(
+            phonenumber,
+            id,
+            email,
+            parseInt(page) || 1,
+            parseInt(limit) || 10
+        );
+
+        resp.status(200).json(result);
+
+    } catch (err) {
+        console.log('failed to get contact', err.stack || err);
+        resp.status(500).json({ error: "failed to get task" });
     }
-    }
+};
 
 const fetchById = async(req,resp)=>{
     let conn;

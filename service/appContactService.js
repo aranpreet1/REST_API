@@ -12,14 +12,17 @@ const XLSX = require("xlsx");
         return rows;
 };
 
-const fetchAllService = async (phonenumber, id, email, page = 1, limit = 10) => {
+const fetchAllService = async (phonenumber, id, email, page = 1, limit = 10 , search) => {
     const conn = await db.getConnection();
 
     let query = `SELECT * FROM CONTACT WHERE 1=1`;
-    let countQuery = `SELECT COUNT(*) AS total FROM CONTACT WHERE 1=1`;
+    let countQuery = `SELECT COUNT(*) AS total FROM CONTACT WHERE 1=1 and  `;
     const params = [];
     const countParams = [];
-
+    if(search){
+      query += `( email like '%${search}%' or username like '%${search}%' or phonenumber like '%${search}% )`
+    }
+    let search = `SELECT * FROM contact_info.contact where email like '%${search}%' or username like '%${search}%' or phonenumber like '%${search}%';`
     // Filters
     if (phonenumber !== undefined) {
         query += ` AND phonenumber = ?`;

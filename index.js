@@ -12,6 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/contact', contactRouter);
 
-app.listen (8000, ()=>{
-    console.log("server is running on port :8000")
+const port = process.env.PORT || 8000;
+app.listen (port, ()=>{
+    console.log(`Server is at http://localhost:${port}`);
 });

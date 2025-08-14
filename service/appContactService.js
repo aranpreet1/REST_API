@@ -12,60 +12,33 @@ const XLSX = require("xlsx");
         return rows;
 };
 
-const fetchAllService = async (phonenumber, id, email, page = 1, limit = 10) => {
+const fetchAllService = async (phonenumber, id, email) => {
     const conn = await db.getConnection();
 
     let query = `SELECT * FROM CONTACT WHERE 1=1`;
-    let countQuery = `SELECT COUNT(*) AS total FROM CONTACT`;
     const params = [];
-    const countParams = [];
 
     if (phonenumber !== undefined) {
         query += ` AND phonenumber = ?`;
-        countQuery += ` AND phonenumber = ?`;
         params.push(phonenumber);
-        countParams.push(phonenumber);
     }
     if (email !== undefined) {
         query += ` AND email = ?`;
-        countQuery += ` AND email = ?`;
         params.push(email);
-        countParams.push(email);
     }
     if (id !== undefined) {
         query += ` AND id = ?`;
-        countQuery += ` AND id = ?`;
         params.push(id);
-        countParams.push(id);
     }
 
-    // Pagination (safe integer injection)
-    const safeLimit = Math.max(1, parseInt(limit) || 10);
-    const safeOffset = Math.max(0, (parseInt(page) - 1) * safeLimit);
-
-    query += ` LIMIT ${safeLimit} OFFSET ${safeOffset}`;
-
-    // Execute
     const [data] = await conn.execute(query, params);
-    const [countRows] = await conn.execute(countQuery, countParams);
 
     conn.release();
 
-    const totalItems = countRows[0]?.total || 0;
-    const totalPages = Math.ceil(totalItems / safeLimit);
-
-    return {
-        data,
-        pagination: {
-            totalItems,
-            totalPages,
-            currentPage: parseInt(page) || 1,
-            pageSize: safeLimit,
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1
-        }
-    };
+    return data; // return just the array of contacts
 };
+
+
 
 
 const fetchByMailService = async (email, phonenumber, excludeID) => {

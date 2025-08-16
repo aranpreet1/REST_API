@@ -100,11 +100,15 @@ async function insertUsers(users) {
 
   const conn = await db.getConnection();
   try {
-    await conn.beginTransaction();
 
     const sql = 'INSERT INTO CONTACT (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)';
     let inserted = 0;
     const errors = [];
+
+
+    let chkDup = `SELECT * FROM CONTACT WHERE `;
+
+
 
     // Validation regexes
     const usernameRegex = /^[A-Za-z\s]+$/; // only letters + spaces
@@ -116,6 +120,7 @@ async function insertUsers(users) {
       const username = String(u.username || '').trim();
       const email = String(u.email || '').trim();
       const phone = String(u.phone || '').replace(/\D/g, '').trim(); // remove non-digits
+     
 
       // Username validation
       if (!username) {
@@ -146,21 +151,39 @@ async function insertUsers(users) {
         errors.push({ row: u._row, error: 'Phone must be exactly 10 digits' });
         continue;
       }
-
+      let duplicate = [];
+      let checkEmail = chkDup + `Email = "${email}"`
+      let [checkEmailres] = await conn.execute(checkEmail);
+      if(checkEmailres.length > 0){
+       duplicate.push("email")
+      }
+      let checkPhone = chkDup + `phonenumber = "${phone}"`
+      let [checkPhoneres] = await conn.execute(checkPhone);
+      if(checkPhoneres.length > 0){
+        duplicate.push("phone")
+      }
+      let checkuser = chkDup + `username = "${username}"`
+      let [checkuserres] = await conn.execute(checkuser);
+      if(checkuserres.length > 0){
+        duplicate.push("username")
+      }
+      if(duplicate.length){
+        errors.push({ row: u._row, error: 'Duplicate entry: ' + duplicate.join(' , ') });
+        continue;
+      }
       // Insert into DB
       try {
         await conn.execute(sql, [username, email, phone]);
         inserted += 1;
       } catch (e) {
-        errors.push({ row: u._row, error: e.code || e.message });
+        errors.push({ row: u._row, error: e.message = 'ER_DUP_ENTRY'  ? "Duplicate entry" : e.message});
       }
     }
 
-    await conn.commit();
     return { inserted, failed: errors.length, errors };
 
   } catch (e) {
-    await conn.rollback();
+    console.log(e)
     throw e;
   } finally {
     conn.release();

@@ -1,10 +1,11 @@
 const express = require ('express');
 const { contactRouter } = require('./routes');
+const cors = require('cors');
 
 require('dotenv').config();
 
 const app = express();
-
+app.use(cors())
 app.use(express.json()); //POST,PUT
 app.use(express.urlencoded({ extended: true }));
 

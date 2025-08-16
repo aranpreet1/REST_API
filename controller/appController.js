@@ -153,6 +153,7 @@ const uploadUsers = async (req, res) => {
     });
   } catch (err) {
     // Optional: delete file on error
+    console.log(err)
     if (req.file) fs.unlink(req.file.path, () => {});
     return res
       .status(500)

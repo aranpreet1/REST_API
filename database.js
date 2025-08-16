@@ -10,7 +10,6 @@ class Database{
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
                 waitForConnections: true,
-                connectionLimit: parseInt(process.env.DB_CONN_LIMIT || "10"),
                 queueLimit: 0
             });
             Database.instance = this;

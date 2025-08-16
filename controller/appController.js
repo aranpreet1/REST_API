@@ -1,5 +1,6 @@
 const db = require("../database");
 const fs = require("fs");
+const XLSX = require("xlsx");
 const {
   parseExcelToUsers,
   insertUsers,
@@ -153,7 +154,7 @@ const uploadUsers = async (req, res) => {
     });
   } catch (err) {
     // Optional: delete file on error
-    console.log(err)
+    console.log(err);
     if (req.file) fs.unlink(req.file.path, () => {});
     return res
       .status(500)
@@ -161,7 +162,29 @@ const uploadUsers = async (req, res) => {
   }
 };
 
+const exportAll = async (req, res) => {
+  try {
+    const result = await fetchAllService();
+    const worksheet = XLSX.utils.json_to_sheet(result);
+
+    // Step 2: Create a new workbook and append the worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=output.xlsx"
+  );
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  res.send(buffer);
+  } catch (err) {
+    console.log("failed to get contact", err.stack || err);
+    resp.status(500).json({ error: "failed to get task" });
+  }
+};
+
 module.exports = {
+  exportAll,
   uploadUsers,
   createContact,
   fetchAll,

@@ -6,6 +6,9 @@ const XLSX = require("xlsx");
 
 
  const fetchByIdService = async(id)=>{
+        if (!id || isNaN(id)) {
+          throw new Error("Invalid contact ID");
+        }
         const conn = await db.getConnection();
         const query = `SELECT * FROM CONTACT where id=${id}`;
         const [rows]= await conn.execute(query);
@@ -32,7 +35,6 @@ const fetchAllService = async (phonenumber, id, email) => {
     }
 
     const [data] = await conn.execute(query, params);
-
     conn.release();
 
     return data; // return just the array of contacts

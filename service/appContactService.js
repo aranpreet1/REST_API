@@ -1,7 +1,5 @@
 const db = require("../database");
-const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-const isPhone = (v) => /^[0-9+\-()\s]{7,20}$/.test(v);
-const multer = require("multer");
+
 const XLSX = require("xlsx");
 
 

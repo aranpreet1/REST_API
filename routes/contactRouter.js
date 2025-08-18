@@ -5,6 +5,8 @@ const { upload } = require('../middlewares/uploadmiddleware');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 
+
+
 //get all contacts
 router.get('/', authMiddleware, fetchAll);
 

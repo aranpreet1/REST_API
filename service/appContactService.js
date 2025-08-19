@@ -104,7 +104,7 @@ async function insertUsers(users) {
     const sql = 'INSERT INTO CONTACT (USERNAME, EMAIL, PHONENUMBER) VALUES (?, ?, ?)';
     let inserted = 0;
     const errors = [];
-
+    
 
     let chkDup = `SELECT * FROM CONTACT WHERE `;
 
@@ -121,34 +121,33 @@ async function insertUsers(users) {
       const email = String(u.email || '').trim();
       const phone = String(u.phone || '').replace(/\D/g, '').trim(); // remove non-digits
      
-
       // Username validation
       if (!username) {
-        errors.push({ row: u._row, error: 'Username is required' });
+        errors.push({ row: u._row,...u, error: 'Username is required' });
         continue;
       }
       if (!usernameRegex.test(username)) {
-        errors.push({ row: u._row, error: 'Username must contain only letters and spaces' });
+        errors.push({ row: u._row,...u, error: 'Username must contain only letters and spaces' });
         continue;
       }
 
       // Email validation
       if (!email) {
-        errors.push({ row: u._row, error: 'Email is required' });
+        errors.push({ row: u._row,...u, error: 'Email is required' });
         continue;
       }
       if (!emailRegex.test(email)) {
-        errors.push({ row: u._row, error: 'Invalid email format' });
+        errors.push({ row: u._row,...u, error: 'Invalid email format' });
         continue;
       }
 
       // Phone validation
       if (!phone) {
-        errors.push({ row: u._row, error: 'Phone number is required' });
+        errors.push({ row: u._row,...u, error: 'Phone number is required' });
         continue;
       }
       if (!phoneRegex.test(phone)) {
-        errors.push({ row: u._row, error: 'Phone must be exactly 10 digits' });
+        errors.push({ row: u._row,...u, error: 'Phone must be exactly 10 digits' });
         continue;
       }
       let duplicate = [];
@@ -168,7 +167,7 @@ async function insertUsers(users) {
         duplicate.push("username")
       }
       if(duplicate.length){
-        errors.push({ row: u._row, error: 'Duplicate entry: ' + duplicate.join(' , ') });
+        errors.push({ row: u._row,...u, error: 'Duplicate entry: ' + duplicate.join(' , ') });
         continue;
       }
       // Insert into DB
@@ -176,10 +175,10 @@ async function insertUsers(users) {
         await conn.execute(sql, [username, email, phone]);
         inserted += 1;
       } catch (e) {
-        errors.push({ row: u._row, error: e.message = 'ER_DUP_ENTRY'  ? "Duplicate entry" : e.message});
+        errors.push({ row: u._row,...u, error: e.message = 'ER_DUP_ENTRY'  ? "Duplicate entry" : e.message});
       }
     }
-
+   
     return { inserted, failed: errors.length, errors };
 
   } catch (e) {

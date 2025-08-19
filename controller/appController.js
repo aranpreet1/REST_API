@@ -11,6 +11,7 @@ const {
   fetchAllService,
   deleteByIdService,
 } = require("../service/appContactService");
+const { Console } = require("console");
 
 const createContact = async (req, resp) => {
   let conn;
@@ -142,7 +143,7 @@ const uploadUsers = async (req, res) => {
     }
 
     const result = await insertUsers(users);
-
+    console.log(result)
     // Optional: delete file after processing
     fs.unlink(req.file.path, () => {});
 
@@ -159,6 +160,7 @@ const uploadUsers = async (req, res) => {
     return res
       .status(500)
       .json({ message: "Failed to import users", error: err.message });
+      
   }
 };
 

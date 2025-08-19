@@ -30,4 +30,6 @@ router.get('/export',authMiddleware, exportAll);
 router.get("/protected", authMiddleware, (req, res) => {
   res.json({ message: `Welcome ${req.user.username}, this is protected data 🔐` });
 });
+
+
 module.exports = {contactRouter:router};

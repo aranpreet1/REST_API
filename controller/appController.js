@@ -21,7 +21,7 @@ const createContact = async (req, resp) => {
     resp.status(201).json({ data: result });
   } catch (err) {
     console.log("failed to create contact", err.stack || err);
-    resp.status(500).json({ error: "failed to create task" });
+    resp.status(500).json({ error: "failed to create contact" });
   } finally {
     if (conn) conn.release();
   }
